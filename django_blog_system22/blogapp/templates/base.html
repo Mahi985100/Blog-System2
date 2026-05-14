@@ -1,0 +1,183 @@
+
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Blog System{% endblock %}</title>
+    
+    <!-- Fonts & Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    <link rel="manifest" href="{% static 'manifest.json' %}">
+    <meta name="theme-color" content="#ff00cc">
+    
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('{% static "sw.js" %}');
+            });
+        }
+    </script>
+    
+    <style>
+        body { 
+            min-height: 100vh; 
+            display: flex; 
+            flex-direction: column; 
+            background: var(--bg-color);
+            transition: background 0.3s ease;
+        }
+        .main-content { flex: 1; }
+        
+        .navbar-custom {
+            margin-top: 20px;
+            padding: 10px 30px;
+            z-index: 1000;
+            background: var(--nav-bg);
+        }
+        
+        .theme-toggle {
+            cursor: pointer;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            transition: all 0.3s ease;
+            background: var(--surface-color);
+            border: 1px solid var(--glass-border);
+            color: var(--text-main);
+        }
+        
+        .theme-toggle:hover {
+            transform: rotate(15deg);
+            background: var(--primary-gradient);
+            color: white;
+        }
+
+        .avatar-nav {
+            width: 35px;
+            height: 35px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid var(--glass-border);
+        }
+    </style>
+    <script>
+        // Immediate theme application to prevent flash
+        const theme = localStorage.getItem('theme') || 'dark';
+        document.documentElement.setAttribute('data-theme', theme);
+    </script>
+</head>
+<body>
+
+<div class="container">
+    <nav class="navbar-custom glass d-flex align-items-center justify-content-between animate-fade-in">
+        <a class="navbar-brand fs-3 fw-bold gradient-text" href="/">ELEGANT.</a>
+        
+        <div class="d-flex align-items-center gap-3">
+            <a href="/" class="nav-link-modern d-none d-md-block">Explore</a>
+            
+            <div class="theme-toggle" id="theme-toggle" title="Toggle Light/Dark Mode">
+                <i class="fas fa-moon" id="theme-icon"></i>
+            </div>
+
+            {% if user.is_authenticated %}
+                <div class="dropdown">
+                    <div class="d-flex align-items-center gap-2 cursor-pointer" data-bs-toggle="dropdown">
+                        <span class="text-white fw-bold d-none d-sm-block">{{ user.username }}</span>
+                    </div>
+                    <ul class="dropdown-menu dropdown-menu-dark glass border-0 mt-2 shadow">
+                        <li><a class="dropdown-item" href="{% url 'profile_view' user.username %}"><i class="fas fa-user me-2"></i> Profile</a></li>
+                        <li><a class="dropdown-item" href="{% url 'profile_edit' %}"><i class="fas fa-cog me-2"></i> Settings</a></li>
+                        {% if user.is_staff %}
+                            <li><hr class="dropdown-divider border-secondary opacity-25"></li>
+                            <li><a class="dropdown-item" href="{% url 'admin_dashboard' %}"><i class="fas fa-chart-line me-2"></i> Dashboard</a></li>
+                        {% endif %}
+                    </ul>
+                </div>
+                <a href="{% url 'logout' %}" class="nav-link-modern text-danger d-none d-md-block" title="Logout">
+                    <i class="fas fa-sign-out-alt"></i>
+                </a>
+            {% else %}
+                <a href="/login/" class="nav-link-modern">Login</a>
+                <a href="/register/" class="btn-modern py-2 px-4 d-none d-sm-flex">Join Us</a>
+            {% endif %}
+        </div>
+    </nav>
+</div>
+
+<main class="main-content container py-5 animate-fade-in">
+    {% block content %}{% endblock %}
+</main>
+
+<footer class="py-5 glass mt-auto">
+    <div class="container">
+        <div class="row g-5">
+            <div class="col-lg-4">
+                <h3 class="gradient-text fw-bold mb-4">ELEGANT.</h3>
+                <p class="text-muted lh-lg">Crafting digital stories with a touch of modern aesthetics. Join our community of creative minds.</p>
+                <div class="d-flex gap-3 mt-4">
+                    <a href="#" class="btn-modern p-0 d-flex align-items-center justify-content-center" style="width: 40px; height: 40px; border-radius: 12px;"><i class="fab fa-twitter"></i></a>
+                    <a href="#" class="btn-modern p-0 d-flex align-items-center justify-content-center" style="width: 40px; height: 40px; border-radius: 12px;"><i class="fab fa-instagram"></i></a>
+                    <a href="#" class="btn-modern p-0 d-flex align-items-center justify-content-center" style="width: 40px; height: 40px; border-radius: 12px;"><i class="fab fa-linkedin-in"></i></a>
+                </div>
+            </div>
+            <div class="col-lg-2 ms-auto">
+                <h5 class="text-white mb-4">Navigation</h5>
+                <ul class="list-unstyled d-flex flex-column gap-2">
+                    <li><a href="/" class="text-muted text-decoration-none hover-white">Home</a></li>
+                    <li><a href="/login/" class="text-muted text-decoration-none hover-white">Sign In</a></li>
+                    <li><a href="/register/" class="text-muted text-decoration-none hover-white">Join Us</a></li>
+                </ul>
+            </div>
+            <div class="col-lg-3">
+                <h5 class="text-white mb-4">Newsletter</h5>
+                <div class="input-group glass p-1">
+                    <input type="text" class="form-control bg-transparent border-0 text-white ps-3" placeholder="Email Address">
+                    <button class="btn-modern px-3 py-2"><i class="fas fa-paper-plane"></i></button>
+                </div>
+            </div>
+        </div>
+        <div class="mt-5 pt-4 border-top border-secondary border-opacity-10 d-flex flex-wrap justify-content-between gap-3">
+            <p class="text-muted small mb-0">&copy; 2026 Elegant Blog. All rights reserved.</p>
+            <div class="d-flex gap-4">
+                <a href="#" class="text-muted small text-decoration-none hover-white">Privacy</a>
+                <a href="#" class="text-muted small text-decoration-none hover-white">Terms</a>
+            </div>
+        </div>
+    </div>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    const themeToggle = document.getElementById('theme-toggle');
+    const themeIcon = document.getElementById('theme-icon');
+    
+    function updateIcon(theme) {
+        if (theme === 'light') {
+            themeIcon.className = 'fas fa-sun';
+        } else {
+            themeIcon.className = 'fas fa-moon';
+        }
+    }
+
+    // Initial icon state
+    updateIcon(document.documentElement.getAttribute('data-theme'));
+
+    themeToggle.addEventListener('click', () => {
+        let currentTheme = document.documentElement.getAttribute('data-theme');
+        let newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+        
+        document.documentElement.setAttribute('data-theme', newTheme);
+        localStorage.setItem('theme', newTheme);
+        updateIcon(newTheme);
+    });
+</script>
+</body>
+</html>
+

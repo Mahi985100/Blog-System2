@@ -1,0 +1,199 @@
+
+{% extends 'base.html' %}
+{% block content %}
+
+<!-- Header Section -->
+<div class="row align-items-center mb-5 animate-fade-in">
+    <div class="col-lg-8">
+        <h1 class="display-4 fw-bold text-white mb-3">Explore <span class="gradient-text">Elegant Stories.</span></h1>
+        <p class="text-muted fs-5">Premium insights on design, tech, and creative living.</p>
+    </div>
+    <div class="col-lg-4 position-relative">
+        <form method="GET" class="animate-fade-in" id="search-form">
+            <div class="input-group glass p-1" style="border-radius: 50px;">
+                <input type="text" name="search" id="search-input" class="form-control bg-transparent border-0 text-white ps-4" placeholder="Search stories..." autocomplete="off">
+                <button class="btn-modern px-4 py-2" style="border-radius: 50px;"><i class="fas fa-search"></i></button>
+            </div>
+        </form>
+        <div id="search-results" class="glass position-absolute w-100 mt-2 d-none shadow-lg overflow-hidden" style="z-index: 1000; border-radius: 16px;"></div>
+    </div>
+</div>
+
+<script>
+    const searchInput = document.getElementById('search-input');
+    const resultsContainer = document.getElementById('search-results');
+    let debounceTimer;
+
+    searchInput.addEventListener('input', () => {
+        clearTimeout(debounceTimer);
+        const query = searchInput.value.trim();
+        
+        if (query.length < 2) {
+            resultsContainer.classList.add('d-none');
+            return;
+        }
+
+        debounceTimer = setTimeout(async () => {
+            const res = await fetch(`/api/search/?q=${encodeURIComponent(query)}`);
+            const data = await res.json();
+            
+            if (data.results.length > 0) {
+                resultsContainer.innerHTML = data.results.map(blog => `
+                    <a href="${blog.url}" class="d-flex align-items-center gap-3 p-3 text-decoration-none hover-glow border-bottom border-secondary border-opacity-10">
+                        <div class="rounded overflow-hidden" style="width: 40px; height: 40px; flex-shrink: 0;">
+                            <img src="${blog.image || ''}" class="w-100 h-100 object-fit-cover" onerror="this.src='https://via.placeholder.com/40'">
+                        </div>
+                        <div class="overflow-hidden">
+                            <h6 class="text-white mb-0 text-truncate">${blog.title}</h6>
+                            <small class="text-muted smaller">${blog.category}</small>
+                        </div>
+                    </a>
+                `).join('');
+                resultsContainer.classList.remove('d-none');
+            } else {
+                resultsContainer.innerHTML = '<div class="p-3 text-muted small">No results found</div>';
+                resultsContainer.classList.remove('d-none');
+            }
+        }, 300);
+    });
+
+    document.addEventListener('click', (e) => {
+        if (!searchInput.contains(e.target) && !resultsContainer.contains(e.target)) {
+            resultsContainer.classList.add('d-none');
+        }
+    });
+</script>
+
+<!-- Trending Section -->
+{% if trending_blogs %}
+<div class="mb-5 animate-fade-in" style="animation-delay: 0.1s;">
+    <div class="d-flex align-items-center gap-3 mb-4">
+        <div class="btn-modern p-0 d-flex align-items-center justify-content-center" style="width: 45px; height: 45px; border-radius: 12px;">
+            <i class="fas fa-fire"></i>
+        </div>
+        <h2 class="text-white fw-bold mb-0">Trending Now</h2>
+    </div>
+    <div class="row g-4">
+        {% for blog in trending_blogs %}
+        <div class="col-md-3">
+            <a href="{% url 'detail' blog.id %}" class="text-decoration-none">
+                <div class="glass p-3 hover-glow h-100">
+                    <div class="rounded-3 overflow-hidden mb-3" style="height: 140px;">
+                        {% if blog.image %}
+                            <img src="{{ blog.image.url }}" class="w-100 h-100 object-fit-cover">
+                        {% endif %}
+                    </div>
+                    <span class="badge glass mb-2 smaller">{{ blog.category.name }}</span>
+                    <h6 class="text-white fw-bold mb-1 line-clamp-2">{{ blog.title }}</h6>
+                    <small class="text-muted">{{ blog.total_likes }} likes • {{ blog.views_count }} views</small>
+                </div>
+            </a>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endif %}
+
+<hr class="border-secondary opacity-10 my-5">
+
+<!-- Category Filter -->
+<div class="d-flex flex-wrap gap-3 mb-5 animate-fade-in" style="animation-delay: 0.2s;">
+    <a href="{% url 'home' %}" class="{% if not selected_category %}btn-modern{% else %}nav-link-modern glass px-4 py-2{% endif %} rounded-pill text-decoration-none">
+        All Stories
+    </a>
+    {% for category in categories %}
+        <a href="?category={{ category.id }}" 
+           class="{% if selected_category == category.id %}btn-modern{% else %}nav-link-modern glass px-4 py-2{% endif %} rounded-pill text-decoration-none">
+            {{ category.name }}
+        </a>
+    {% endfor %}
+</div>
+
+<!-- Blog Grid -->
+<div class="row g-4 animate-fade-in" style="animation-delay: 0.4s;">
+    {% for blog in page_obj %}
+    <div class="col-md-6 col-lg-4">
+        <div class="card-modern hover-lift h-100 d-flex flex-column">
+            <div class="position-relative overflow-hidden" style="height: 240px;">
+                {% if blog.image %}
+                    <img src="{{ blog.image.url }}" class="w-100 h-100" style="object-fit: cover; transition: transform 0.5s ease;">
+                {% else %}
+                    <div class="w-100 h-100 d-flex align-items-center justify-content-center bg-dark">
+                        <i class="fas fa-image text-muted fs-1"></i>
+                    </div>
+                {% endif %}
+                <div class="position-absolute top-0 start-0 m-3">
+                    <span class="badge glass px-3 py-2 text-white small" style="backdrop-filter: blur(8px);">{{ blog.category.name }}</span>
+                </div>
+            </div>
+            
+            <div class="p-4 flex-grow-1 d-flex flex-column">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <small class="text-muted"><i class="far fa-calendar-alt me-2"></i>{{ blog.created_at|date:"M d, Y" }}</small>
+                    <small class="text-muted"><i class="far fa-eye me-1"></i> {{ blog.views_count }}</small>
+                </div>
+                <h4 class="fw-bold text-white mb-3" style="line-height: 1.4;">{{ blog.title }}</h4>
+                <p class="text-muted small mb-4 flex-grow-1">{{ blog.content|striptags|truncatewords:20 }}</p>
+                
+                <div class="mt-auto pt-3 border-top border-secondary border-opacity-10 d-flex align-items-center justify-content-between">
+                    <div class="d-flex align-items-center gap-2">
+                        <small class="text-muted">{{ blog.authors.first.username }}</small>
+                    </div>
+                    <a href="{% url 'detail' blog.id %}" class="btn-modern px-3 py-1 small" style="font-size: 0.8rem;">
+                        Read <i class="fas fa-chevron-right ms-1"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% empty %}
+    <div class="col-12 text-center py-5 glass">
+        <i class="fas fa-feather-alt text-muted fs-1 mb-4"></i>
+        <h3 class="text-muted">No stories found here.</h3>
+        <p class="text-muted mb-0">Try exploring other categories or search terms.</p>
+    </div>
+    {% endfor %}
+</div>
+
+<!-- Pagination -->
+{% if page_obj.has_other_pages %}
+<div class="d-flex justify-content-center mt-5 animate-fade-in" style="animation-delay: 0.6s;">
+    <nav>
+        <ul class="pagination gap-2">
+            {% if page_obj.has_previous %}
+                <li class="page-item">
+                    <a class="page-link glass text-white border-0 px-4 py-2 rounded-pill" href="?page={{ page_obj.previous_page_number }}{% if selected_category %}&category={{ selected_category }}{% endif %}">
+                        <i class="fas fa-chevron-left me-2"></i> Prev
+                    </a>
+                </li>
+            {% endif %}
+            
+            <li class="page-item active">
+                <span class="page-link btn-modern border-0 px-4 py-2 rounded-pill shadow-lg">{{ page_obj.number }}</span>
+            </li>
+            
+            {% if page_obj.has_next %}
+                <li class="page-item">
+                    <a class="page-link glass text-white border-0 px-4 py-2 rounded-pill shadow-sm" href="?page={{ page_obj.next_page_number }}{% if selected_category %}&category={{ selected_category }}{% endif %}">
+                        Next <i class="fas fa-chevron-right ms-2"></i>
+                    </a>
+                </li>
+            {% endif %}
+        </ul>
+    </nav>
+</div>
+{% endif %}
+
+<style>
+    .card-modern:hover img { transform: scale(1.1); }
+    .line-clamp-2 {
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+    }
+    .smaller { font-size: 0.7rem; }
+</style>
+
+{% endblock %}
+

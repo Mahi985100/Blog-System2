@@ -1,0 +1,207 @@
+
+{% extends 'base_admin.html' %}
+
+{% block title %}Dashboard Overview{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-5 animate-fade-in">
+    <div>
+        <h1 class="text-white fw-bold">Overview.</h1>
+        <p class="text-muted">Welcome back, Admin. Here's what's happening.</p>
+    </div>
+    <a href="{% url 'blog_add' %}" class="btn-modern px-4 py-3 text-decoration-none">
+        <i class="fas fa-plus me-2"></i> Create New Story
+    </a>
+</div>
+
+<!-- Stats Grid -->
+<div class="row g-4 mb-5 animate-fade-in" style="animation-delay: 0.1s;">
+    <div class="col-md-3">
+        <div class="glass p-4 hover-glow h-100">
+            <div class="d-flex align-items-center gap-3 mb-3">
+                <div class="btn-modern p-0 d-flex align-items-center justify-content-center" style="width: 45px; height: 45px; border-radius: 12px;">
+                    <i class="fas fa-newspaper"></i>
+                </div>
+                <span class="text-muted small fw-bold">TOTAL BLOGS</span>
+            </div>
+            <h2 class="text-white fw-bold mb-0">{{ blog_count }}</h2>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="glass p-4 hover-glow h-100">
+            <div class="d-flex align-items-center gap-3 mb-3">
+                <div class="btn-modern p-0 d-flex align-items-center justify-content-center" style="width: 45px; height: 45px; border-radius: 12px; background: var(--secondary-gradient);">
+                    <i class="fas fa-users"></i>
+                </div>
+                <span class="text-muted small fw-bold">TOTAL USERS</span>
+            </div>
+            <h2 class="text-white fw-bold mb-0">{{ user_count }}</h2>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="glass p-4 hover-glow h-100">
+            <div class="d-flex align-items-center gap-3 mb-3">
+                <div class="btn-modern p-0 d-flex align-items-center justify-content-center" style="width: 45px; height: 45px; border-radius: 12px;">
+                    <i class="fas fa-comment"></i>
+                </div>
+                <span class="text-muted small fw-bold">COMMENTS</span>
+            </div>
+            <h2 class="text-white fw-bold mb-0">{{ comment_count }}</h2>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="glass p-4 hover-glow h-100">
+            <div class="d-flex align-items-center gap-3 mb-3">
+                <div class="btn-modern p-0 d-flex align-items-center justify-content-center" style="width: 45px; height: 45px; border-radius: 12px; background: var(--secondary-gradient);">
+                    <i class="fas fa-tags"></i>
+                </div>
+                <span class="text-muted small fw-bold">CATEGORIES</span>
+            </div>
+            <h2 class="text-white fw-bold mb-0">{{ category_count }}</h2>
+        </div>
+    </div>
+</div>
+
+<!-- Charts Section -->
+<div class="row g-4 mb-5 animate-fade-in" style="animation-delay: 0.2s;">
+    <div class="col-lg-8">
+        <div class="glass p-4 h-100">
+            <h5 class="text-white fw-bold mb-4">Content Distribution</h5>
+            <canvas id="categoryChart" style="max-height: 300px;"></canvas>
+        </div>
+    </div>
+    <div class="col-lg-4">
+        <div class="glass p-4 h-100">
+            <h5 class="text-white fw-bold mb-4">Engagement Stats</h5>
+            <div class="d-flex flex-column gap-4 mt-3">
+                <div class="text-center p-3 glass">
+                    <h3 class="text-white fw-bold mb-0">{% for b in recent_blogs %}{% if forloop.first %}{{ b.views_count }}{% endif %}{% endfor %}</h3>
+                    <small class="text-muted uppercase smaller">Latest Post Views</small>
+                </div>
+                <div class="text-center p-3 glass">
+                    <h3 class="text-white fw-bold mb-0">{% for b in recent_blogs %}{% if forloop.first %}{{ b.total_likes }}{% endif %}{% endfor %}</h3>
+                    <small class="text-muted uppercase smaller">Latest Post Likes</small>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4 animate-fade-in" style="animation-delay: 0.3s;">
+    <!-- Recent Blogs Table -->
+    <div class="col-lg-8">
+        <div class="glass p-4 h-100">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h5 class="text-white fw-bold mb-0">Recent Stories</h5>
+                <a href="{% url 'blog_manage' %}" class="nav-link-modern small">Manage All <i class="fas fa-chevron-right ms-1 small"></i></a>
+            </div>
+            <div class="table-responsive">
+                <table class="table table-dark table-borderless align-middle mb-0" style="--bs-table-bg: transparent;">
+                    <thead>
+                        <tr class="small border-bottom border-secondary border-opacity-10">
+                            <th class="ps-0 py-3 text-white">STORY</th>
+                            <th class="py-3 text-white">AUTHOR</th>
+                            <th class="py-3 text-white">DATE</th>
+                            <th class="py-3 text-end text-white">ACTIONS</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for blog in recent_blogs %}
+                        <tr class="border-bottom border-secondary border-opacity-10">
+                            <td class="ps-0 py-3">
+                                <div class="d-flex align-items-center gap-3">
+                                    {% if blog.image %}
+                                        <img src="{{ blog.image.url }}" class="rounded-3" style="width: 45px; height: 45px; object-fit: cover;">
+                                    {% else %}
+                                        <div class="glass rounded-3 d-flex align-items-center justify-content-center" style="width: 45px; height: 45px;">
+                                            <i class="fas fa-image text-muted small"></i>
+                                        </div>
+                                    {% endif %}
+                                    <span class="fw-bold">{{ blog.title|truncatechars:30 }}</span>
+                                </div>
+                            </td>
+                            <td><span class="text-muted small">{{ blog.authors.first.username }}</span></td>
+                            <td><span class="text-muted small">{{ blog.created_at|date:"M d, Y" }}</span></td>
+                            <td class="text-end pe-0">
+                                <div class="d-flex gap-2 justify-content-end">
+                                    <a href="{% url 'blog_edit' blog.id %}" class="btn glass p-2 rounded-3 text-white"><i class="fas fa-pen-nib small"></i></a>
+                                    <a href="{% url 'blog_delete' blog.id %}" class="btn glass p-2 rounded-3 text-danger"><i class="fas fa-trash small"></i></a>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- New Users List -->
+    <div class="col-lg-4">
+        <div class="glass p-4 h-100">
+            <h5 class="text-white fw-bold mb-4">New Members</h5>
+            <div class="d-flex flex-column gap-4">
+                {% for user in recent_users %}
+                <div class="d-flex align-items-center justify-content-between">
+                    <div class="d-flex align-items-center gap-3">
+                        <div>
+                            <h6 class="text-white mb-0 small fw-bold">{{ user.username }}</h6>
+                            <small class="text-muted" style="font-size: 11px;">Joined {{ user.date_joined|date:"M d" }}</small>
+                        </div>
+                    </div>
+                    <span class="badge glass px-2 py-1 text-muted smaller" style="font-size: 10px;">New</span>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    const ctx = document.getElementById('categoryChart').getContext('2d');
+    const data = {
+        labels: [{% for item in blogs_by_category %}'{{ item.category__name }}',{% endfor %}],
+        datasets: [{
+            label: 'Stories per Category',
+            data: [{% for item in blogs_by_category %}{{ item.count }},{% endfor %}],
+            backgroundColor: [
+                'rgba(255, 0, 204, 0.5)',
+                'rgba(255, 153, 0, 0.5)',
+                'rgba(120, 75, 160, 0.5)',
+                'rgba(255, 60, 172, 0.5)',
+            ],
+            borderColor: [
+                '#ff00cc',
+                '#ff9900',
+                '#784BA0',
+                '#FF3CAC',
+            ],
+            borderWidth: 1
+        }]
+    };
+
+    new Chart(ctx, {
+        type: 'bar',
+        data: data,
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    grid: { color: 'rgba(255, 255, 255, 0.1)' },
+                    ticks: { color: 'rgba(255, 255, 255, 0.5)' }
+                },
+                x: {
+                    grid: { display: false },
+                    ticks: { color: 'rgba(255, 255, 255, 0.5)' }
+                }
+            },
+            plugins: {
+                legend: { display: false }
+            }
+        }
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,161 @@
+
+{% extends 'base_admin.html' %}
+
+{% block title %}{{ title }} | Admin{% endblock %}
+
+{% block content %}
+<!-- Quill CSS -->
+<link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
+<style>
+    .ql-toolbar.ql-snow {
+        border: 1px solid var(--glass-border) !important;
+        border-radius: 12px 12px 0 0;
+        background: rgba(255, 255, 255, 0.05);
+    }
+    .ql-container.ql-snow {
+        border: 1px solid var(--glass-border) !important;
+        border-radius: 0 0 12px 12px;
+        min-height: 300px;
+        font-family: 'Outfit', sans-serif;
+        font-size: 1.1rem;
+        color: var(--text-main);
+    }
+    .ql-editor.ql-blank::before {
+        color: rgba(255, 255, 255, 0.3) !important;
+    }
+    .authors-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+        gap: 10px;
+        max-height: 200px;
+        overflow-y: auto;
+    }
+    .author-checkbox {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 8px 12px;
+        background: rgba(255, 255, 255, 0.03);
+        border-radius: 8px;
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+    .author-checkbox:hover {
+        background: rgba(255, 255, 255, 0.08);
+    }
+    .author-checkbox input {
+        accent-color: #ff00cc;
+    }
+</style>
+
+<div class="mb-5 animate-fade-in">
+    <a href="{% url 'blog_manage' %}" class="nav-link-modern glass px-4 py-2 rounded-pill d-inline-flex align-items-center mb-4">
+        <i class="fas fa-arrow-left me-2"></i> Back to Manage
+    </a>
+    <h1 class="text-white fw-bold">{{ title }}.</h1>
+    <p class="text-muted">Craft your masterpiece with the rich text editor below.</p>
+</div>
+
+<div class="glass p-4 p-md-5 animate-fade-in shadow-lg" style="max-width: 1000px; margin: 0 auto; animation-delay: 0.1s;">
+    <form id="blog-form" method="POST" enctype="multipart/form-data">
+        {% csrf_token %}
+        
+        <div class="row g-4">
+            <div class="col-md-8">
+                <div class="mb-4">
+                    <label class="text-white small fw-bold mb-2 ms-2">STORY TITLE</label>
+                    <input type="text" name="title" value="{{ form.title.value|default:'' }}" class="form-control glass border-secondary border-opacity-25 py-3 ps-3 text-white" placeholder="Enter a catchy title..." required>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="mb-4">
+                    <label class="text-white small fw-bold mb-2 ms-2">CATEGORY</label>
+                    <select name="category" class="form-select glass border-secondary border-opacity-25 py-3 ps-3 text-white" style="background-color: #1a1a1a !important;">
+                        {% for choice in form.category.field.choices %}
+                            <option value="{{ choice.0 }}" {% if form.category.value|stringformat:"s" == choice.0|stringformat:"s" %}selected{% endif %}>{{ choice.1 }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+
+            <div class="col-12">
+                <div class="mb-4">
+                    <label class="text-white small fw-bold mb-2 ms-2">STORY CONTENT</label>
+                    <div id="editor-container"></div>
+                    <input type="hidden" name="content" id="content-field">
+                </div>
+            </div>
+
+            <div class="col-md-6">
+                <div class="mb-4">
+                    <label class="text-white small fw-bold mb-2 ms-2">COVER IMAGE</label>
+                    <div class="glass p-3 rounded-4">
+                        <input type="file" name="image" class="form-control bg-transparent border-0 text-white-50">
+                        {% if form.instance.image %}
+                            <div class="mt-3">
+                                <img src="{{ form.instance.image.url }}" class="rounded-3" style="width: 100px; height: 60px; object-fit: cover;">
+                                <small class="text-muted ms-2">Current image</small>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-6">
+                <div class="mb-4">
+                    <label class="text-white small fw-bold mb-2 ms-2">CO-AUTHORS</label>
+                    <div class="glass p-3 rounded-4">
+                        <div class="authors-grid">
+                            {% for choice in form.authors.field.choices %}
+                            <label class="author-checkbox">
+                                <input type="checkbox" name="authors" value="{{ choice.0 }}" {% if choice.0 in form.authors.value %}checked{% endif %}>
+                                <span class="text-white small">{{ choice.1 }}</span>
+                            </label>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="mt-5 pt-4 border-top border-secondary border-opacity-10 d-flex gap-3">
+            <button type="submit" class="btn-modern px-5 py-3 shadow-lg">
+                <i class="fas fa-paper-plane me-2"></i> Publish Story
+            </button>
+            <a href="{% url 'blog_manage' %}" class="btn glass px-5 py-3 rounded-pill text-white text-decoration-none">
+                Discard
+            </a>
+        </div>
+    </form>
+</div>
+
+<!-- Quill JS -->
+<script src="https://cdn.quilljs.com/1.3.6/quill.js"></script>
+<script>
+    var quill = new Quill('#editor-container', {
+        theme: 'snow',
+        placeholder: 'Tell your story...',
+        modules: {
+            toolbar: [
+                [{ 'header': [1, 2, 3, false] }],
+                ['bold', 'italic', 'underline', 'strike'],
+                ['blockquote', 'code-block'],
+                [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+                ['link', 'image'],
+                ['clean']
+            ]
+        }
+    });
+
+    // Set initial content
+    var initialContent = `{{ form.content.value|safe|default:'' }}`;
+    quill.root.innerHTML = initialContent;
+
+    // Handle form submission
+    var form = document.getElementById('blog-form');
+    form.onsubmit = function() {
+        var content = document.querySelector('#content-field');
+        content.value = quill.root.innerHTML;
+    };
+</script>
+{% endblock %}

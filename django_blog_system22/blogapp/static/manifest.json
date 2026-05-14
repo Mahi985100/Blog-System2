@@ -1,0 +1,21 @@
+{
+  "name": "Elegant Blog System",
+  "short_name": "Elegant",
+  "description": "A premium blog experience.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#050505",
+  "theme_color": "#ff00cc",
+  "icons": [
+    {
+      "src": "https://via.placeholder.com/192/ff00cc/ffffff?text=E",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "https://via.placeholder.com/512/ff00cc/ffffff?text=Elegant",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}

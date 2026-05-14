@@ -1,0 +1,82 @@
+
+{% extends 'base.html' %}
+{% block title %}Edit Profile{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center animate-fade-in">
+    <div class="col-lg-8">
+        <div class="glass p-5">
+            <h2 class="text-white fw-bold mb-4">Profile Settings</h2>
+            
+            <form method="POST" enctype="multipart/form-data">
+                {% csrf_token %}
+                
+                <div class="row mb-5 align-items-center">
+                    <div class="col-md-3 text-center">
+                        {% if user.profile.profile_picture %}
+                            <img src="{{ user.profile.profile_picture.url }}" class="rounded-circle mb-3 shadow" style="width: 120px; height: 120px; object-fit: cover; border: 4px solid var(--glass-border);">
+                        {% else %}
+                            <div class="rounded-circle mb-3 shadow mx-auto d-flex align-items-center justify-content-center bg-secondary text-white fw-bold fs-1" style="width: 120px; height: 120px; border: 4px solid var(--glass-border);">
+                                {{ user.username|slice:":1"|upper }}
+                            </div>
+                        {% endif %}
+                    </div>
+                    <div class="col-md-9">
+                        <label class="text-white-50 mb-2 small fw-bold text-uppercase">Profile Picture</label>
+                        {{ profile_form.profile_picture }}
+                    </div>
+                </div>
+
+                <div class="row g-4 mb-4">
+                    <div class="col-md-6">
+                        <label class="text-white-50 mb-2 small fw-bold text-uppercase">First Name</label>
+                        <input type="text" name="first_name" value="{{ user_form.first_name.value|default:'' }}" class="form-control glass border-secondary border-opacity-25 py-3">
+                    </div>
+                    <div class="col-md-6">
+                        <label class="text-white-50 mb-2 small fw-bold text-uppercase">Last Name</label>
+                        <input type="text" name="last_name" value="{{ user_form.last_name.value|default:'' }}" class="form-control glass border-secondary border-opacity-25 py-3">
+                    </div>
+                    <div class="col-12">
+                        <label class="text-white-50 mb-2 small fw-bold text-uppercase">Email Address</label>
+                        <input type="email" name="email" value="{{ user_form.email.value|default:'' }}" class="form-control glass border-secondary border-opacity-25 py-3">
+                    </div>
+                </div>
+
+                <div class="mb-4">
+                    <label class="text-white-50 mb-2 small fw-bold text-uppercase">Bio</label>
+                    <textarea name="bio" class="form-control glass border-secondary border-opacity-25" rows="4">{{ profile_form.bio.value|default:'' }}</textarea>
+                </div>
+
+                <div class="row g-4 mb-5">
+                    <div class="col-md-4">
+                        <label class="text-white-50 mb-2 small fw-bold text-uppercase">Website</label>
+                        <div class="input-group glass">
+                            <span class="input-group-text bg-transparent border-0 text-muted"><i class="fas fa-globe"></i></span>
+                            <input type="url" name="website" value="{{ profile_form.website.value|default:'' }}" class="form-control bg-transparent border-0 py-3">
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="text-white-50 mb-2 small fw-bold text-uppercase">Twitter</label>
+                        <div class="input-group glass">
+                            <span class="input-group-text bg-transparent border-0 text-muted"><i class="fab fa-twitter"></i></a></span>
+                            <input type="url" name="twitter" value="{{ profile_form.twitter.value|default:'' }}" class="form-control bg-transparent border-0 py-3">
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="text-white-50 mb-2 small fw-bold text-uppercase">GitHub</label>
+                        <div class="input-group glass">
+                            <span class="input-group-text bg-transparent border-0 text-muted"><i class="fab fa-github"></i></a></span>
+                            <input type="url" name="github" value="{{ profile_form.github.value|default:'' }}" class="form-control bg-transparent border-0 py-3">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="d-flex gap-3">
+                    <button type="submit" class="btn-modern px-5 py-3">Save Changes</button>
+                    <a href="{% url 'profile_view' user.username %}" class="btn-modern glass px-5 py-3 bg-transparent">Cancel</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

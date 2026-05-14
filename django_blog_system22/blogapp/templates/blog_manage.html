@@ -1,0 +1,87 @@
+{% extends 'base_admin.html' %}
+
+{% block title %}Manage Stories{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-5 animate-fade-in">
+    <div>
+        <h1 class="text-white fw-bold">Manage Stories.</h1>
+        <p class="text-muted">Edit, delete, and organize your blog content.</p>
+    </div>
+    <a href="{% url 'blog_add' %}" class="btn-modern px-4 py-3">
+        <i class="fas fa-plus me-2"></i> New Story
+    </a>
+</div>
+
+<div class="glass p-0 overflow-hidden animate-fade-in" style="animation-delay: 0.1s;">
+    <div class="table-responsive">
+        <table class="table table-dark table-borderless align-middle mb-0" style="--bs-table-bg: transparent;">
+            <thead>
+                <tr class="small border-bottom border-secondary border-opacity-10" style="background: rgba(255,255,255,0.02);">
+                    <th class="ps-4 py-3 text-white">STORY DETAILS</th>
+                    <th class="py-3 text-white">AUTHOR</th>
+                    <th class="py-3 text-white">CATEGORY</th>
+                    <th class="py-3 text-white">PUBLISHED</th>
+                    <th class="py-3 text-end pe-4 text-white">ACTIONS</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for blog in blogs %}
+                <tr class="border-bottom border-secondary border-opacity-10 hover-glow-subtle">
+                    <td class="ps-4 py-4">
+                        <div class="d-flex align-items-center gap-3">
+                            {% if blog.image %}
+                                <img src="{{ blog.image.url }}" class="rounded-3 shadow-sm" style="width: 55px; height: 55px; object-fit: cover;">
+                            {% else %}
+                                <div class="glass rounded-3 d-flex align-items-center justify-content-center shadow-sm" style="width: 55px; height: 55px;">
+                                    <i class="fas fa-image text-muted small"></i>
+                                </div>
+                            {% endif %}
+                            <div>
+                                <a href="{% url 'detail' blog.id %}" class="text-white fw-bold text-decoration-none hover-white mb-1 d-block">{{ blog.title }}</a>
+                                <span class="text-muted smaller d-block" style="font-size: 11px;">ID: #{{ blog.id|stringformat:"04d" }}</span>
+                            </div>
+                        </div>
+                    </td>
+                    <td>
+                        <div class="d-flex align-items-center gap-2">
+                            <div class="btn-modern p-0 d-flex align-items-center justify-content-center fw-bold" style="width: 28px; height: 28px; border-radius: 8px; font-size: 10px;">
+                                {{ blog.author.username|slice:":1"|upper }}
+                            </div>
+                            <span class="text-muted small">{{ blog.author.username }}</span>
+                        </div>
+                    </td>
+                    <td><span class="badge glass px-3 py-2 text-white-50 border border-secondary border-opacity-25">{{ blog.category.name }}</span></td>
+                    <td><span class="text-muted small">{{ blog.created_at|date:"M d, Y" }}</span></td>
+                    <td class="text-end pe-4">
+                        <div class="d-flex gap-2 justify-content-end">
+                            <a href="{% url 'blog_edit' blog.id %}" class="btn glass p-2 rounded-3 text-white" title="Edit"><i class="fas fa-pen-nib small"></i></a>
+                            <a href="{% url 'blog_delete' blog.id %}" class="btn glass p-2 rounded-3 text-danger" title="Delete"><i class="fas fa-trash-can small"></i></a>
+                        </div>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="5" class="py-5 text-center">
+                        <div class="py-5">
+                            <i class="fas fa-folder-open text-muted fs-1 mb-4 opacity-25"></i>
+                            <h5 class="text-muted">No stories found.</h5>
+                            <a href="{% url 'blog_add' %}" class="gradient-text fw-bold text-decoration-none">Create your first story</a>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<style>
+    .hover-glow-subtle {
+        transition: background 0.3s ease;
+    }
+    .hover-glow-subtle:hover {
+        background: rgba(255, 255, 255, 0.03);
+    }
+</style>
+{% endblock %}

@@ -1,0 +1,227 @@
+
+{% extends 'base.html' %}
+{% block content %}
+
+<!-- Back Button -->
+<div class="mb-4 animate-fade-in">
+    <a href="{% url 'home' %}" class="nav-link-modern glass px-4 py-2 rounded-pill d-inline-flex align-items-center">
+        <i class="fas fa-arrow-left me-2"></i> Back to Explore
+    </a>
+</div>
+
+<article class="animate-fade-in" style="animation-delay: 0.2s;">
+    <!-- Hero Section -->
+    <div class="card-modern parallax-hero border-0 mb-5 overflow-hidden position-relative" style="min-height: 500px;">
+        {% if blog.image %}
+            <img src="{{ blog.image.url }}" class="position-absolute w-100 h-100" style="object-fit: cover; z-index: 1;">
+            <div class="position-absolute w-100 h-100" style="background: linear-gradient(to bottom, rgba(0,0,0,0.1), rgba(0,0,0,0.9)); z-index: 2;"></div>
+        {% else %}
+            <div class="position-absolute w-100 h-100 bg-dark" style="z-index: 1;"></div>
+        {% endif %}
+        
+        <div class="position-relative p-5 d-flex flex-column justify-content-end h-100" style="z-index: 3; min-height: 500px;">
+            <div class="mb-3">
+                <span class="badge btn-modern px-3 py-2" style="font-size: 0.8rem;">{{ blog.category.name }}</span>
+            </div>
+            <h1 class="display-3 fw-bold text-white mb-4 lh-sm">{{ blog.title }}</h1>
+            
+            <div class="d-flex flex-wrap align-items-center gap-4 text-white-50">
+                <div class="d-flex align-items-center gap-2">
+                    <i class="far fa-calendar-alt text-white"></i>
+                    <span>{{ blog.created_at|date:"F d, Y" }}</span>
+                </div>
+                <div class="d-flex align-items-center gap-2">
+                    <i class="far fa-eye text-white"></i>
+                    <span>{{ blog.views_count }} views</span>
+                </div>
+                <div class="d-flex align-items-center gap-2">
+                    <i class="far fa-clock text-white"></i>
+                    <span>{{ blog.content|wordcount|divisibleby:200|add:1 }} min read</span>
+                </div>
+            </div>
+
+            <div class="mt-4">
+                <span class="text-white-50 small d-block">Written by</span>
+                <span class="text-white fw-bold">
+                    {% for author in blog.authors.all %}
+                        <a href="{% url 'profile_view' author.username %}" class="text-decoration-none text-white hover-glow">
+                            {{ author.username }}</a>{% if not forloop.last %}, {% endif %}
+                    {% endfor %}
+                </span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Content Section -->
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+            <div class="glass p-4 p-md-5 mb-5 shadow-lg">
+                <div class="article-content text-muted fs-5 lh-lg">
+                    {{ blog.content|safe }}
+                </div>
+                
+                <hr class="my-5 border-secondary opacity-10">
+                
+                <!-- Interaction Bar -->
+                <div class="d-flex flex-wrap justify-content-between align-items-center gap-4 mb-5">
+                    <div class="d-flex gap-3">
+                        <button id="like-btn" class="nav-link-modern glass p-3 rounded-circle d-flex flex-column align-items-center justify-content-center" style="width: 60px; height: 60px;" data-id="{{ blog.id }}">
+                            <i class="{% if is_liked %}fas text-danger{% else %}far{% endif %} fa-heart fs-5"></i>
+                            <small id="like-count" class="smaller mt-1">{{ blog.total_likes }}</small>
+                        </button>
+                        <button id="bookmark-btn" class="nav-link-modern glass p-3 rounded-circle d-flex align-items-center justify-content-center" style="width: 60px; height: 60px;" data-id="{{ blog.id }}">
+                            <i class="{% if is_bookmarked %}fas text-warning{% else %}far{% endif %} fa-bookmark fs-5"></i>
+                        </button>
+                    </div>
+                    
+                    <div class="d-flex align-items-center gap-3">
+                        <span class="text-muted small fw-bold text-uppercase tracking-wider">Share Story</span>
+                        <div class="d-flex gap-2">
+                            <button onclick="share('twitter')" class="nav-link-modern glass p-3 rounded-circle d-flex align-items-center justify-content-center" style="width: 50px; height: 50px;"><i class="fab fa-twitter"></i></button>
+                            <button onclick="share('facebook')" class="nav-link-modern glass p-3 rounded-circle d-flex align-items-center justify-content-center" style="width: 50px; height: 50px;"><i class="fab fa-facebook-f"></i></button>
+                            <button onclick="share('whatsapp')" class="nav-link-modern glass p-3 rounded-circle d-flex align-items-center justify-content-center" style="width: 50px; height: 50px;"><i class="fab fa-whatsapp"></i></button>
+                            <button onclick="copyLink()" class="nav-link-modern glass p-3 rounded-circle d-flex align-items-center justify-content-center" style="width: 50px; height: 50px;"><i class="fas fa-link"></i></button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Comments Section -->
+                <div class="comments-section mt-5">
+                    <h3 class="text-white fw-bold mb-4">Community Thoughts <span class="text-muted">({{ comments.count }})</span></h3>
+                    
+                    <!-- Comment Form -->
+                    {% if user.is_authenticated %}
+                    <div class="mb-5 glass p-4">
+                        <form method="POST">
+                            {% csrf_token %}
+                            <div class="mb-3">
+                                <textarea name="text" class="form-control bg-transparent border-secondary border-opacity-25 text-white" rows="3" placeholder="Join the conversation..." required style="resize: none;"></textarea>
+                            </div>
+                            <button class="btn-modern">Post Thought</button>
+                        </form>
+                    </div>
+                    {% else %}
+                    <div class="mb-5 glass p-4 text-center">
+                        <p class="text-muted mb-3">Please login to share your thoughts.</p>
+                        <a href="{% url 'login' %}" class="btn-modern">Login to Comment</a>
+                    </div>
+                    {% endif %}
+
+                    <div class="d-flex flex-column gap-4">
+                        {% for comment in comments %}
+                        <div class="glass p-4 animate-fade-in">
+                            <div class="d-flex gap-3 align-items-center mb-3">
+                                {% if comment.user.profile.profile_picture %}
+                                    <img src="{{ comment.user.profile.profile_picture.url }}" class="avatar-nav" style="width: 40px; height: 40px;">
+                                {% else %}
+                                    <div class="avatar-nav d-flex align-items-center justify-content-center bg-secondary text-white fw-bold" style="width: 40px; height: 40px;">
+                                        {{ comment.user.username|slice:":1"|upper }}
+                                    </div>
+                                {% endif %}
+                                <div>
+                                    <h6 class="text-white mb-0">{{ comment.user.username }}</h6>
+                                    <small class="text-muted smaller">{{ comment.created_at|timesince }} ago</small>
+                                </div>
+                            </div>
+                            <p class="text-muted mb-0 lh-base">{{ comment.text }}</p>
+                        </div>
+                        {% empty %}
+                        <div class="text-center py-5 glass border-dashed">
+                            <i class="far fa-comments text-muted fs-2 mb-3"></i>
+                            <p class="text-muted mb-0 italic">No comments yet. Be the first to share your thoughts!</p>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</article>
+
+<script>
+    // Like functionality
+    const likeBtn = document.getElementById('like-btn');
+    if (likeBtn) {
+        likeBtn.addEventListener('click', async () => {
+            const id = likeBtn.dataset.id;
+            const res = await fetch(`/blog/${id}/like/`, {
+                headers: { 'X-Requested-With': 'XMLHttpRequest' }
+            });
+            if (res.ok) {
+                const data = await res.json();
+                const icon = likeBtn.querySelector('i');
+                const count = document.getElementById('like-count');
+                
+                if (data.liked) {
+                    icon.className = 'fas fa-heart text-danger fs-5 animate-heart';
+                } else {
+                    icon.className = 'far fa-heart fs-5';
+                }
+                count.innerText = data.total_likes;
+            } else if (res.status === 403) {
+                window.location.href = "{% url 'login' %}";
+            }
+        });
+    }
+
+    // Bookmark functionality
+    const bookmarkBtn = document.getElementById('bookmark-btn');
+    if (bookmarkBtn) {
+        bookmarkBtn.addEventListener('click', async () => {
+            const id = bookmarkBtn.dataset.id;
+            const res = await fetch(`/blog/${id}/bookmark/`, {
+                headers: { 'X-Requested-With': 'XMLHttpRequest' }
+            });
+            if (res.ok) {
+                const data = await res.json();
+                const icon = bookmarkBtn.querySelector('i');
+                if (data.bookmarked) {
+                    icon.className = 'fas fa-bookmark text-warning fs-5';
+                } else {
+                    icon.className = 'far fa-bookmark fs-5';
+                }
+            } else if (res.status === 403) {
+                window.location.href = "{% url 'login' %}";
+            }
+        });
+    }
+
+    // Social Sharing
+    function share(platform) {
+        const url = encodeURIComponent(window.location.href);
+        const title = encodeURIComponent("{{ blog.title }}");
+        let shareUrl = '';
+        
+        if (platform === 'twitter') {
+            shareUrl = `https://twitter.com/intent/tweet?url=${url}&text=${title}`;
+        } else if (platform === 'facebook') {
+            shareUrl = `https://www.facebook.com/sharer/sharer.php?u=${url}`;
+        } else if (platform === 'whatsapp') {
+            shareUrl = `https://api.whatsapp.com/send?text=${title}%20${url}`;
+        }
+        
+        window.open(shareUrl, '_blank', 'width=600,height=400');
+    }
+
+    function copyLink() {
+        navigator.clipboard.writeText(window.location.href);
+        alert('Link copied to clipboard!');
+    }
+</script>
+
+<style>
+    .article-content { color: var(--text-muted) !important; }
+    .article-content p { margin-bottom: 1.5rem; }
+    .article-content img { max-width: 100%; border-radius: 16px; margin: 2rem 0; }
+    .border-dashed { border-style: dashed !important; border-width: 2px !important; }
+    .-space-x-2 > * { margin-left: -0.5rem; }
+    .animate-heart { animation: heartBeat 0.3s ease-in-out; }
+    @keyframes heartBeat {
+        0% { transform: scale(1); }
+        50% { transform: scale(1.3); }
+        100% { transform: scale(1); }
+    }
+    .smaller { font-size: 0.75rem; }
+</style>
+
+{% endblock %}
